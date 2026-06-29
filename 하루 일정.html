@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)file:///Users/liwoo/Downloads/daily-schedule_1.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>하루 일정</title>
+<style>
+  :root{
+    --ink:#2b2b28;
+    --ink-soft:#6b6b63;
+    --paper:#faf8f3;
+    --card:#ffffff;
+    --line:#e6e2d6;
+    --accent:#c9603a;
+    --accent-soft:#f4ddd2;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:20px 16px 80px;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .nav-btn{
+    border:none;
+    background:none;
+    font-size:20px;
+    color:var(--ink-soft);
+    padding:8px 12px;
+    cursor:pointer;
+  }
+  .date-box{
+    text-align:center;
+    flex:1;
+  }
+  .date-box .dow{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .date-box .ymd{
+    font-size:18px;
+    font-weight:600;
+    margin:2px 0 0;
+  }
+  .today-btn{
+    display:block;
+    margin:0 auto 20px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    border-radius:20px;
+    padding:6px 16px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:60px 0;
+    font-size:14px;
+  }
+  .entry{
+    display:flex;
+    gap:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 14px;
+    margin-bottom:10px;
+    align-items:flex-start;
+  }
+  .entry .time{
+    min-width:52px;
+    font-weight:600;
+    font-size:14px;
+    color:var(--accent);
+    padding-top:2px;
+  }
+  .entry .body{
+    flex:1;
+  }
+  .entry .title{
+    font-size:15px;
+    font-weight:500;
+    margin:0;
+    word-break:break-word;
+  }
+  .entry .memo{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:4px 0 0;
+    word-break:break-word;
+    white-space:pre-wrap;
+  }
+  .entry .actions{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .entry .actions button{
+    border:none;
+    background:none;
+    color:var(--ink-soft);
+    font-size:13px;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .entry .actions button.del{
+    color:var(--accent);
+  }
+  .fab{
+    position:fixed;
+    bottom:24px;
+    right:50%;
+    transform:translateX(204px);
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    font-size:26px;
+    line-height:52px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,0,0,0.18);
+  }
+  @media (max-width:480px){
+    .fab{ right:20px; transform:none; }
+  }
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:10;
+  }
+  .overlay.open{ display:flex; }
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-width:480px;
+    border-radius:18px 18px 0 0;
+    padding:20px 18px 28px;
+  }
+  .sheet h2{
+    font-size:16px;
+    margin:0 0 16px;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:15px;
+    background:#fff;
+    color:var(--ink);
+    font-family:inherit;
+  }
+  .field textarea{ resize:vertical; min-height:60px; }
+  .sheet-actions{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+  }
+  .sheet-actions button{
+    flex:1;
+    border:none;
+    border-radius:10px;
+    padding:12px 0;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .btn-cancel{ background:var(--card); color:var(--ink-soft); border:1px solid var(--line) !important; }
+  .btn-save{ background:var(--accent); color:#fff; }
+  .attach-thumb{
+    margin-top:8px;
+    max-width:160px;
+    max-height:160px;
+    border-radius:8px;
+    display:block;
+  }
+  .attach-link{
+    display:inline-block;
+    margin-top:8px;
+    font-size:13px;
+    color:var(--accent);
+    text-decoration:none;
+  }
+  .view-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:16px;
+  }
+  .view-tabs button{
+    flex:1;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    border-radius:10px;
+    padding:8px 0;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .view-tabs button.active{
+    background:var(--accent);
+    color:#fff;
+    border-color:var(--accent);
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+  }
+  .cal-dow{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    padding-bottom:4px;
+  }
+  .cal-day{
+    aspect-ratio:1;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--card);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+    cursor:pointer;
+    position:relative;
+  }
+  .cal-day.empty-cell{ visibility:hidden; cursor:default; }
+  .cal-day.is-today{ border-color:var(--accent); }
+  .cal-day .dot{
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--accent);
+    margin-top:3px;
+  }
+  .month-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+  }
+  .month-cell{
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--card);
+    padding:18px 0;
+    text-align:center;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .month-cell.has-entry{ border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .status{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:30px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="view-tabs">
+    <button id="tabDay" class="active">일별</button>
+    <button id="tabMonth">월별</button>
+    <button id="tabYear">연간</button>
+  </div>
+
+  <div id="dayView">
+    <header>
+      <button class="nav-btn" id="prevBtn">‹</button>
+      <div class="date-box">
+        <p class="dow" id="dowLabel">월요일</p>
+        <p class="ymd" id="ymdLabel">2026년 6월 29일</p>
+      </div>
+      <button class="nav-btn" id="nextBtn">›</button>
+    </header>
+    <button class="today-btn" id="todayBtn">오늘로 이동</button>
+    <div id="list"><div class="empty">이 날의 일정이 없습니다.<br>+ 버튼을 눌러 추가해보세요.</div></div>
+  </div>
+
+  <div id="monthView" style="display:none;">
+    <header>
+      <button class="nav-btn" id="prevMonthBtn">‹</button>
+      <div class="date-box">
+        <p class="ymd" id="monthLabel"></p>
+      </div>
+      <button class="nav-btn" id="nextMonthBtn">›</button>
+    </header>
+    <div class="cal-grid" id="monthGrid"></div>
+  </div>
+
+  <div id="yearView" style="display:none;">
+    <header>
+      <button class="nav-btn" id="prevYearBtn">‹</button>
+      <div class="date-box">
+        <p class="ymd" id="yearLabel"></p>
+      </div>
+      <button class="nav-btn" id="nextYearBtn">›</button>
+    </header>
+    <div class="month-grid" id="yearGrid"></div>
+  </div>
+
+  <div class="status" id="statusMsg"></div>
+</div>
+
+<button class="fab" id="addBtn">+</button>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2 id="sheetTitle">일정 추가</h2>
+    <div class="field">
+      <label>시간</label>
+      <input type="time" id="inputTime">
+    </div>
+    <div class="field">
+      <label>제목</label>
+      <input type="text" id="inputTitle" placeholder="예: 팀 회의">
+    </div>
+    <div class="field">
+      <label>메모 (선택)</label>
+      <textarea id="inputMemo" placeholder="세부 내용을 적어두세요"></textarea>
+    </div>
+    <div class="field">
+      <label>첨부파일 (선택, 5MB 이하)</label>
+      <input type="file" id="inputFile">
+      <div id="filePreview" style="margin-top:8px;font-size:13px;color:var(--ink-soft);"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" id="cancelBtn">취소</button>
+      <button class="btn-save" id="saveBtn">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const dowNames = ['일','월','화','수','목','금','토'];
+let currentDate = new Date();
+let editingId = null;
+let pendingAttach = null;
+let view = 'day';
+
+function switchView(next){
+  view = next;
+  document.getElementById('tabDay').classList.toggle('active', view==='day');
+  document.getElementById('tabMonth').classList.toggle('active', view==='month');
+  document.getElementById('tabYear').classList.toggle('active', view==='year');
+  document.getElementById('dayView').style.display = view==='day' ? '' : 'none';
+  document.getElementById('monthView').style.display = view==='month' ? '' : 'none';
+  document.getElementById('yearView').style.display = view==='year' ? '' : 'none';
+  document.getElementById('addBtn').style.display = view==='day' ? '' : 'none';
+  if(view==='day'){ renderHeader(); renderList(); }
+  else if(view==='month'){ renderMonth(); }
+  else { renderYear(); }
+}
+
+async function getEntryDateSet(){
+  try{
+    const set = new Set();
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('entries:')) set.add(k.replace('entries:',''));
+    }
+    return set;
+  }catch(e){
+    return new Set();
+  }
+}
+
+async function renderMonth(){
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth();
+  document.getElementById('monthLabel').textContent = `${y}년 ${m+1}월`;
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = dowNames.map(d=> `<div class="cal-dow">${d}</div>`).join('');
+  const firstDow = new Date(y, m, 1).getDay();
+  const lastDate = new Date(y, m+1, 0).getDate();
+  const dateSet = await getEntryDateSet();
+  const today = new Date();
+  for(let i=0;i<firstDow;i++){
+    grid.insertAdjacentHTML('beforeend', '<div class="cal-day empty-cell"></div>');
+  }
+  for(let d=1; d<=lastDate; d++){
+    const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+    const cell = document.createElement('div');
+    cell.className = 'cal-day' + (isToday ? ' is-today' : '');
+    cell.innerHTML = `<span>${d}</span>` + (dateSet.has(key) ? '<span class="dot"></span>' : '');
+    cell.onclick = ()=>{
+      currentDate = new Date(y, m, d);
+      switchView('day');
+    };
+    grid.appendChild(cell);
+  }
+}
+
+async function renderYear(){
+  const y = currentDate.getFullYear();
+  document.getElementById('yearLabel').textContent = `${y}년`;
+  const grid = document.getElementById('yearGrid');
+  const dateSet = await getEntryDateSet();
+  const monthHas = new Set();
+  dateSet.forEach(k=>{
+    const parts = k.split('-');
+    if(parts[0] === String(y)) monthHas.add(parseInt(parts[1],10));
+  });
+  grid.innerHTML = '';
+  for(let mo=1; mo<=12; mo++){
+    const cell = document.createElement('div');
+    cell.className = 'month-cell' + (monthHas.has(mo) ? ' has-entry' : '');
+    cell.textContent = mo + '월';
+    cell.onclick = ()=>{
+      currentDate = new Date(y, mo-1, 1);
+      switchView('month');
+    };
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('tabDay').onclick = ()=> switchView('day');
+document.getElementById('tabMonth').onclick = ()=> switchView('month');
+document.getElementById('tabYear').onclick = ()=> switchView('year');
+document.getElementById('prevMonthBtn').onclick = ()=>{ currentDate.setMonth(currentDate.getMonth()-1); renderMonth(); };
+document.getElementById('nextMonthBtn').onclick = ()=>{ currentDate.setMonth(currentDate.getMonth()+1); renderMonth(); };
+document.getElementById('prevYearBtn').onclick = ()=>{ currentDate.setFullYear(currentDate.getFullYear()-1); renderYear(); };
+document.getElementById('nextYearBtn').onclick = ()=>{ currentDate.setFullYear(currentDate.getFullYear()+1); renderYear(); };
+
+function dateKey(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function renderHeader(){
+  document.getElementById('dowLabel').textContent = dowNames[currentDate.getDay()] + '요일';
+  document.getElementById('ymdLabel').textContent =
+    `${currentDate.getFullYear()}년 ${currentDate.getMonth()+1}월 ${currentDate.getDate()}일`;
+}
+
+async function loadEntries(){
+  const key = 'entries:' + dateKey(currentDate);
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+async function saveEntries(list){
+  const key = 'entries:' + dateKey(currentDate);
+  localStorage.setItem(key, JSON.stringify(list));
+}
+
+function setStatus(msg){
+  document.getElementById('statusMsg').textContent = msg;
+  if(msg) setTimeout(()=>{ document.getElementById('statusMsg').textContent=''; }, 1500);
+}
+
+async function renderList(){
+  const list = document.getElementById('list');
+  list.innerHTML = '<div class="empty">불러오는 중...</div>';
+  let entries = [];
+  try{
+    entries = await loadEntries();
+  }catch(e){
+    list.innerHTML = '<div class="empty">불러오기에 실패했습니다.</div>';
+    return;
+  }
+  entries.sort((a,b)=> (a.time||'').localeCompare(b.time||''));
+  if(entries.length === 0){
+    list.innerHTML = '<div class="empty">이 날의 일정이 없습니다.<br>+ 버튼을 눌러 추가해보세요.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  entries.forEach(en=>{
+    const div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML = `
+      <div class="time">${en.time || '--:--'}</div>
+      <div class="body">
+        <p class="title"></p>
+        ${en.memo ? '<p class="memo"></p>' : ''}
+      </div>
+      <div class="actions">
+        <button class="edit">수정</button>
+        <button class="del">삭제</button>
+      </div>
+    `;
+    div.querySelector('.title').textContent = en.title;
+    if(en.memo) div.querySelector('.memo').textContent = en.memo;
+    if(en.attach){
+      const body = div.querySelector('.body');
+      if(en.attach.type && en.attach.type.startsWith('image/')){
+        const img = document.createElement('img');
+        img.className = 'attach-thumb';
+        img.src = en.attach.dataUrl;
+        body.appendChild(img);
+      } else {
+        const a = document.createElement('a');
+        a.className = 'attach-link';
+        a.href = en.attach.dataUrl;
+        a.download = en.attach.name;
+        a.textContent = '📎 ' + en.attach.name;
+        body.appendChild(a);
+      }
+    }
+    div.querySelector('.edit').onclick = ()=> openSheet(en);
+    div.querySelector('.del').onclick = ()=> deleteEntry(en.id);
+    list.appendChild(div);
+  });
+}
+
+function openSheet(entry){
+  editingId = entry ? entry.id : null;
+  pendingAttach = entry ? (entry.attach || null) : null;
+  document.getElementById('sheetTitle').textContent = entry ? '일정 수정' : '일정 추가';
+  document.getElementById('inputTime').value = entry ? entry.time : '';
+  document.getElementById('inputTitle').value = entry ? entry.title : '';
+  document.getElementById('inputMemo').value = entry ? (entry.memo||'') : '';
+  document.getElementById('inputFile').value = '';
+  document.getElementById('filePreview').textContent = pendingAttach ? ('첨부됨: ' + pendingAttach.name) : '';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+async function deleteEntry(id){
+  const entries = await loadEntries();
+  const next = entries.filter(e=> e.id !== id);
+  await saveEntries(next);
+  setStatus('삭제되었습니다');
+  renderList();
+}
+
+document.getElementById('inputFile').onchange = (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024){
+    setStatus('5MB 이하 파일만 첨부할 수 있습니다');
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    pendingAttach = { name: file.name, type: file.type, dataUrl: reader.result };
+    document.getElementById('filePreview').textContent = '첨부됨: ' + file.name;
+  };
+  reader.readAsDataURL(file);
+};
+
+document.getElementById('saveBtn').onclick = async ()=>{
+  const time = document.getElementById('inputTime').value;
+  const title = document.getElementById('inputTitle').value.trim();
+  const memo = document.getElementById('inputMemo').value.trim();
+  if(!title){
+    setStatus('제목을 입력해주세요');
+    return;
+  }
+  const entries = await loadEntries();
+  if(editingId){
+    const idx = entries.findIndex(e=> e.id === editingId);
+    if(idx >= 0) entries[idx] = { id: editingId, time, title, memo, attach: pendingAttach };
+  } else {
+    entries.push({ id: Date.now().toString(36), time, title, memo, attach: pendingAttach });
+  }
+  await saveEntries(entries);
+  closeSheet();
+  setStatus('저장되었습니다');
+  renderList();
+};
+
+document.getElementById('cancelBtn').onclick = closeSheet;
+document.getElementById('overlay').onclick = (e)=>{ if(e.target.id==='overlay') closeSheet(); };
+document.getElementById('addBtn').onclick = ()=> openSheet(null);
+
+document.getElementById('prevBtn').onclick = ()=>{
+  currentDate.setDate(currentDate.getDate()-1);
+  renderHeader(); renderList();
+};
+document.getElementById('nextBtn').onclick = ()=>{
+  currentDate.setDate(currentDate.getDate()+1);
+  renderHeader(); renderList();
+};
+document.getElementById('todayBtn').onclick = ()=>{
+  currentDate = new Date();
+  renderHeader(); renderList();
+};
+
+renderHeader();
+renderList();
+</script>
+
+
+</body></html>
